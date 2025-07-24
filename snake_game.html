@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Snake Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    #gameCanvas {
+      background-color: #1a1a2e; /* New background color */
+      border: 4px solid #16213e;
+      margin-top: 20px;
+    }
+
+    #score {
+      font-size: 1.5rem;
+      margin-top: 10px;
+    }
+
+    #levelButtons {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+    .levelBtn {
+      padding: 8px 16px;
+      margin: 0 5px;
+      border: none;
+      border-radius: 5px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    #directionButtons {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    #directionButtons .row {
+      display: flex;
+      gap: 4px;
+    }
+    #directionButtons .main-row {
+      justify-content: space-between;
+      width: 100%;
+    }
+    .dirBtn {
+      padding: 12px 20px;
+      margin: 4px;
+      font-size: 1.5rem;
+      border: none;
+      border-radius: 8px;
+      background: #3a86ff;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    #restartBtn {
+      margin: 15px auto;
+      padding: 12px 25px;
+      font-size: 1.1rem;
+      border: none;
+      background: #ff6392;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+    #restartBtn:hover {
+      background: #ff006e;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐍 Snake Game</h1>
+  <div id="levelButtons">
+    <button class="levelBtn" data-speed="150">Easy</button>
+    <button class="levelBtn" data-speed="100">Medium</button>
+    <button class="levelBtn" data-speed="70">Hard</button>
+  </div>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <div id="score">Score: 0</div>
+  <div id="directionButtons">
+    <div class="row">
+      <button class="dirBtn" onclick="changeDirection('up')">↑</button>
+    </div>
+    <div class="row main-row">
+      <button class="dirBtn" onclick="changeDirection('left')">←</button>
+      <button class="dirBtn" onclick="changeDirection('right')">→</button>
+    </div>
+    <div class="row">
+      <button class="dirBtn" onclick="changeDirection('down')">↓</button>
+    </div>
+  </div>
+  <button id="restartBtn" onclick="restartGame()">Restart</button>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const box = 20;
+    const canvasSize = 400;
+    let score = 0;
+    let snake = [{ x: 160, y: 200 }];
+    let food = {};
+    let dx = box;
+    let dy = 0;
+    let game;
+    let gameOver = false;
+
+    function draw() {
+      ctx.clearRect(0, 0, canvasSize, canvasSize);
+
+      // Draw snake body as boxes
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = i === 0 ? "#ff9f1c" : "#e71d36"; // Orange head, red body 
+        ctx.fillRect(snake[i].x + 1, snake[i].y + 1, box - 2, box - 2);
+      }
+
+      // Draw food as a circular shape
+      ctx.fillStyle = "#2ec4b6"; // Teal color for food
+      ctx.beginPath();
+      ctx.arc(food.x + box / 2, food.y + box / 2, box / 2 - 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+      if (head.x === food.x && head.y === food.y) {
+        const multiplier = gameSpeed === 150 ? 1 : gameSpeed === 100 ? 2 : 3;
+        score += multiplier;
+        document.getElementById("score").innerText = `Score: ${score} (${multiplier}x)`;
+        placeFood();
+      } else {
+        snake.pop();
+      }
+
+      if (head.x < 0 || head.x >= canvasSize || head.y < 0 || head.y >= canvasSize || collision(head)) {
+        clearInterval(game);
+        gameOver = true;
+        document.getElementById("restartBtn").style.display = "block";
+      }
+
+      snake.unshift(head);
+    }
+
+    function collision(head) {
+      for (let i = 0; i < snake.length; i++) {
+        if (snake[i].x === head.x && snake[i].y === head.y) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function placeFood() {
+      food.x = Math.floor(Math.random() * (canvasSize / box)) * box;
+      food.y = Math.floor(Math.random() * (canvasSize / box)) * box;
+    }
+
+    function restartGame() {
+      clearInterval(game);
+      score = 0;
+      snake = [{ x: 160, y: 200 }];
+      dx = box;
+      dy = 0;
+      gameOver = false;
+      document.getElementById("score").innerText = "Score: 0";
+      document.getElementById("restartBtn").style.display = "none";
+      placeFood();
+      game = setInterval(draw, 100);
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowLeft" && dx === 0) {
+        dx = -box;
+        dy = 0;
+      } else if (e.key === "ArrowRight" && dx === 0) {
+        dx = box;
+        dy = 0;
+      } else if (e.key === "ArrowUp" && dy === 0) {
+        dx = 0;
+        dy = -box;
+      } else if (e.key === "ArrowDown" && dy === 0) {
+        dx = 0;
+        dy = box;
+      }
+    });
+
+    let gameSpeed = 100; // Default medium speed
+    
+    // Level selection
+    document.querySelectorAll('.levelBtn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        gameSpeed = parseInt(this.dataset.speed);
+        restartGame();
+      });
+    });
+
+    placeFood();
+    game = setInterval(draw, gameSpeed);
+  </script>
+</body>
+</html>
