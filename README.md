@@ -16,7 +16,7 @@ Fun, interactive, and perfect for practicing JavaScript logic and DOM manipulati
 - Avoid hitting the walls or your own tail
 
 ## Live Demo
-🔗 [Play Snake Game →](https://snake-game-by-pravallika.netlify.app)
+🔗 [Play Snake Game ](https://snake-game-by-pravallika.netlify.app)
 
 ## Technologies Used
 - HTML  
